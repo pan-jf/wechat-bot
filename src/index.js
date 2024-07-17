@@ -88,14 +88,14 @@ bot.on('friendship', onFriendShip)
 // 错误
 bot.on('error', (e) => {
   console.error('❌ bot error handle: ', e)
-  // console.log('❌ 程序退出,请重新运行程序')
-  // bot.stop()
+  console.log('❌ 程序退出,请重新运行程序')
+  bot.stop()
 
   // // 如果 WechatEveryDay.memory-card.json 文件存在，删除
   // if (fs.existsSync('WechatEveryDay.memory-card.json')) {
   //   fs.unlinkSync('WechatEveryDay.memory-card.json')
   // }
-  // process.exit()
+  process.exit()
 })
 
 // 启动微信机器人
