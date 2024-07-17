@@ -13,6 +13,7 @@ const aliasWhiteList = env.ALIAS_WHITELIST ? env.ALIAS_WHITELIST.split(',') : []
 const roomWhiteList = env.ROOM_WHITELIST ? env.ROOM_WHITELIST.split(',') : []
 
 import {getServe} from './serve.js'
+import {DataStore} from './saveJson.js'
 
 /**
  * 默认消息发送
@@ -54,14 +55,15 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
         realContent = (await msg.mentionText()) || content.replace(`${botName}`, '') // 去掉艾特的消息主体
     }
     console.log('-----------------------------------')
-    console.log('contact:', contact.payload.name)
-    console.log('room=', room !== undefined, ',roomName=', roomName)
-    console.log('content=', realContent)
+    // console.log('contact:', contact.payload.name)
+    // console.log('room=', room !== undefined, ',roomName=', roomName)
+    // console.log('content=', realContent)
+    console.log('contact.payload', contact.payload)
 
-    const helpResponse =  "🌸 欢迎使用肥燕机器人 🌸 \n" +
+    const helpResponse = "🌸 欢迎使用肥燕机器人 🌸 \n" +
         "在群聊使用时记得艾特我，要不然没反应\n" +
-        "1.请求 AI 模型输入【ai-问题】，如：ai-番茄炒鸡蛋怎么做\n"+
-        "1.请求 AI 模型输入【ai-问题】，如：ai-番茄炒鸡蛋怎么做\n"
+        "1.请求AI模型输入【ai-问题】，如：ai-番茄炒鸡蛋怎么做\n" +
+        "2.定时提醒输入【time-时间-提醒事项】，时间格式:2024-07-15-11-11-11，如：time-2024-07-15-08-15-00-提醒我解冻牛肉\n"
 
     try {
         const doType4 = realContent.substring(0, 4)
@@ -73,6 +75,48 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
                     await room.say(helpResponse)
                 } else {
                     await contact.say(helpResponse)
+                }
+                return
+
+            case "time":
+                realContent = realContent.slice(5)
+                let arr = realContent.split('-')
+                if (arr.length < 6) {
+                    let errResponse = '您的格式有误，请重新输入'
+                    if (room) {
+                        await room.say(errResponse)
+                    } else {
+                        await contact.say(errResponse)
+                    }
+                    return
+                }
+                let dateStr = arr[0] + '-' + arr[1] + '-' + arr[2] + ' ' + arr[3] + ':' + arr[4] + ':' + arr[5]
+                console.log(dateStr)
+                let time = Date.parse(dateStr) / 1000
+                const newArr = arr.slice(6, arr.length)
+                let notice = newArr.join('')
+                console.log(notice)
+                let successResponse = '我会在' + dateStr + "提醒您：" + notice
+                const taskKey = "timeTask"
+                // let oldTask = localStorage.getItem(taskKey)
+                // console.log("oldTask", oldTask)
+
+                // console.log(taskMap)
+                // localStorage.setItem(taskKey, taskMap)
+
+
+                const store = new DataStore('data.json');
+                store.add('name', 'Alice');
+                store.add(taskKey, {"talkId": contact.talkId, "time": time, "notice": notice});
+                console.log(store.get('name')); // 输出: Alice
+                store.delete('name');
+                console.log(store.get('name')); // 输出: undefined
+
+
+                if (room) {
+                    await room.say(successResponse)
+                } else {
+                    await contact.say(successResponse)
                 }
                 return
         }
@@ -92,6 +136,7 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
                     await contact.say(response)
                 }
                 return
+
         }
         if (room) {
             await room.say(helpResponse)

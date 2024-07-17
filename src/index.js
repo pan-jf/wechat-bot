@@ -49,6 +49,15 @@ async function onFriendShip(friendship) {
   }
 }
 
+// 心跳包
+async function onHeartbeat(){
+  console.log('心跳监听',new Date().toLocaleString())
+
+  // let talker = this.wechaty.Contact .load("@eb0cb68ec4d44048d571b3360356cc9540e0de78c95ec2181d3a7340bbfbcdeb")
+  // // talker.say('主动发的一句话')
+  // talker.say
+}
+
 /**
  * 消息发送
  * @param msg
@@ -85,6 +94,8 @@ bot.on('logout', onLogout)
 bot.on('message', onMessage)
 // 添加好友
 bot.on('friendship', onFriendShip)
+// 心跳
+bot.on('heartbeat',onHeartbeat)
 // 错误
 bot.on('error', (e) => {
   console.error('❌ bot error handle: ', e)
