@@ -15,6 +15,7 @@ const __dirname = dirname(__filename)
 const env = dotenv.config().parsed // 环境参数
 const {version, name} = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf8'))
 const HotFilePath = env.HOT_FILE_PATH
+const HotRoom = env.HOT_ROOM
 
 // 扫码
 function onScan(qrcode, status) {
@@ -101,14 +102,19 @@ async function sendHot() {
     for (const hotDataKey in hotData) {
         if (hotData[hotDataKey]['hot_name'] === '新浪微博') {
             for (const key in hotData[hotDataKey]['content']) {
-                if (hotData[hotDataKey]['content'][key]['hot'] !== null) {
+                if (hotData[hotDataKey]['content'][key]['hot'] !== null && hotData[hotDataKey]['content'][key]['hot'] > 0) {
                     sendTxt += "[" + num + ']' + hotData[hotDataKey]['content'][key]['title'] + '(' + hotData[hotDataKey]['content'][key]['hot'] + ")\n"
                     num++
                 }
             }
         }
     }
-    console.log(sendTxt)
+    const room = await bot.Room.find({topic: HotRoom})
+    if (!room) {
+        console.log('未找到群信息')
+        return
+    }
+    await botSend(room, 0, sendTxt)
 }
 
 // 心跳包
