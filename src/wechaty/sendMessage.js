@@ -1,10 +1,13 @@
 import dotenv from 'dotenv'
+import {v4 as uuidV4} from 'uuid'
 // 加载环境变量
 dotenv.config()
 const env = dotenv.config().parsed // 环境参数
 
 // 从环境变量中导入机器人的名称
 const botName = env.BOT_NAME
+const botRealName = env.BOT_REAL_NAME
+const taskKey = "timeTask"
 
 // 从环境变量中导入联系人白名单
 const aliasWhiteList = env.ALIAS_WHITELIST ? env.ALIAS_WHITELIST.split(',') : []
@@ -23,11 +26,12 @@ import {DataStore} from './saveJson.js'
  * @returns {Promise<void>}
  */
 export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
-    const getReply = getServe(ServiceType)
+    // const getReply = getServe(ServiceType)
     const contact = msg.talker() // 发消息人
     const receiver = msg.to() // 消息接收人
     const content = msg.text() // 消息内容
     const room = msg.room() // 是否是群消息
+    const roomId = (await room?.id) || null // 群id
     const roomName = (await room?.topic()) || null // 群名称
     const alias = (await contact.alias()) || (await contact.name()) // 发消息人昵称
     const remarkName = await contact.alias() // 备注名称
@@ -55,8 +59,8 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
         realContent = (await msg.mentionText()) || content.replace(`${botName}`, '') // 去掉艾特的消息主体
     }
     console.log('-----------------------------------')
-    // console.log('contact:', contact.payload.name)
-    // console.log('room=', room !== undefined, ',roomName=', roomName)
+    // console.log('contact:', contact.payload)
+    // console.log('room=', room)
     // console.log('content=', realContent)
     console.log('contact.payload', contact.payload)
 
@@ -71,53 +75,11 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
         const doType2 = realContent.substring(0, 2)
         switch (doType4) {
             case "help":
-                if (room) {
-                    await room.say(helpResponse)
-                } else {
-                    await contact.say(helpResponse)
-                }
+                await response(room, contact, helpResponse)
                 return
 
             case "time":
-                realContent = realContent.slice(5)
-                let arr = realContent.split('-')
-                if (arr.length < 6) {
-                    let errResponse = '您的格式有误，请重新输入'
-                    if (room) {
-                        await room.say(errResponse)
-                    } else {
-                        await contact.say(errResponse)
-                    }
-                    return
-                }
-                let dateStr = arr[0] + '-' + arr[1] + '-' + arr[2] + ' ' + arr[3] + ':' + arr[4] + ':' + arr[5]
-                console.log(dateStr)
-                let time = Date.parse(dateStr) / 1000
-                const newArr = arr.slice(6, arr.length)
-                let notice = newArr.join('')
-                console.log(notice)
-                let successResponse = '我会在' + dateStr + "提醒您：" + notice
-                const taskKey = "timeTask"
-                // let oldTask = localStorage.getItem(taskKey)
-                // console.log("oldTask", oldTask)
-
-                // console.log(taskMap)
-                // localStorage.setItem(taskKey, taskMap)
-
-
-                const store = new DataStore('data.json');
-                store.add('name', 'Alice');
-                store.add(taskKey, {"talkId": contact.talkId, "time": time, "notice": notice});
-                console.log(store.get('name')); // 输出: Alice
-                store.delete('name');
-                console.log(store.get('name')); // 输出: undefined
-
-
-                if (room) {
-                    await room.say(successResponse)
-                } else {
-                    await contact.say(successResponse)
-                }
+                await response(room, contact, timeTaskResponse(realContent, room, roomId, contact))
                 return
         }
 
@@ -128,24 +90,86 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
         switch (doType2) {
             case "ai":
                 realContent = realContent.slice(3)
-                const response = await getReply(realContent)
-                console.log(response)
-                if (room) {
-                    await room.say(response)
-                } else {
-                    await contact.say(response)
-                }
+                const aiRes = await getReply(realContent)
+                await response(room, contact, aiRes)
                 return
+        }
 
+        // 判断是否回复机器人的话
+        const botNameLen = botRealName.length
+        const matchStr = '「' + botRealName + '：'
+        if (realContent.substring(0, botNameLen + 2) === matchStr) {
+            console.log('回复模式', realContent)
+            realContent = realContent.slice(botNameLen + 2)
+            if (realContent.substring(0, 6) === 'timer:') {
+                realContent = realContent.slice(6)
+                let arr = realContent.split('~')
+                if (arr.length < 2) {
+                    console.log('定时任务关闭失败', realContent)
+                    return
+                }
+                const store = new DataStore('task.json');
+                let taskMap = store.get(taskKey)
+                let newArr = []
+
+                for (const taskMapKey in taskMap) {
+                    let id = arr[arr.length - 1].slice(0, 36)
+                    if (taskMap[taskMapKey]['id'] === id) {
+                        console.log('定时任务已删除：', id)
+                    } else {
+                        newArr.push(taskMap[taskMapKey])
+                    }
+                }
+                store.add(taskKey, newArr)
+                await response(room, contact, '好的收到')
+            }
+            return
         }
-        if (room) {
-            await room.say(helpResponse)
-        } else {
-            await contact.say(helpResponse)
-        }
+
+
+        await response(room, contact, helpResponse)
     } catch (e) {
         console.error(e)
     }
+}
+
+
+export async function response(room, contact, res) {
+    if (room) {
+        await room.say(res)
+    } else {
+        await contact.say(res)
+    }
+}
+
+function timeTaskResponse(realContent, room, roomId, contact) {
+    realContent = realContent.slice(5)
+    let arr = realContent.split('-')
+    if (arr.length < 6) {
+        return '您的格式有误，请重新输入'
+    }
+    let dateStr = arr[0] + '-' + arr[1] + '-' + arr[2] + ' ' + arr[3] + ':' + arr[4] + ':' + arr[5]
+    console.log(dateStr)
+    let time = Date.parse(dateStr) / 1000
+    const newArr = arr.slice(6, arr.length)
+    let notice = newArr.join('')
+
+    const store = new DataStore('task.json');
+    let taskMap = store.get(taskKey)
+    if (!taskMap) {
+        taskMap = []
+    }
+    taskMap.push({
+        'id': uuidV4(),
+        "isRoom": room !== undefined,
+        "roomId": roomId,
+        "talkId": contact.payload.id,
+        "time": time,
+        "notice": notice,
+        "sendNum": 0,
+    })
+    store.add(taskKey, taskMap);
+    return '我会在' + dateStr + "提醒您：" + notice
 }
 
 /**
