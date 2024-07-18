@@ -102,13 +102,9 @@ async function sendHot() {
     for (const hotDataKey in hotData) {
         if (hotData[hotDataKey]['hot_name'] === '新浪微博') {
             for (const key in hotData[hotDataKey]['content']) {
-                if (hotData[hotDataKey]['content'][key]['hot'] !== null && hotData[hotDataKey]['content'][key]['hot'] > 0) {
+                if (hotData[hotDataKey]['content'][key]['hot'] !== null && hotData[hotDataKey]['content'][key]['hot'] !== "") {
                     sendTxt += "[" + num + ']' + hotData[hotDataKey]['content'][key]['title'] + '(' + hotData[hotDataKey]['content'][key]['hot'] + ")\n"
                     num++
-                }
-                if (num % 10 === 0) {
-                    await botSend(HotRoom, 0, sendTxt)
-                    sendTxt = ''
                 }
             }
         }
