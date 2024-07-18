@@ -109,12 +109,7 @@ async function sendHot() {
             }
         }
     }
-    const room = await bot.Room.find({topic: HotRoom})
-    if (!room) {
-        console.log('未找到群信息')
-        return
-    }
-    await botSend(room, 0, sendTxt)
+    await botSend(HotRoom, 0, sendTxt)
 }
 
 // 心跳包
