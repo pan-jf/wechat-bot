@@ -95,21 +95,26 @@ async function botSend(roomId, contactId, sendTxt) {
 }
 
 async function sendHot() {
-    let hotData = JSON.parse(fs.readFileSync(HotFilePath, 'utf8'));
+    let date = new Date()
 
-    let sendTxt = ''
-    let num = 1
-    for (const hotDataKey in hotData) {
-        if (hotData[hotDataKey]['hot_name'] === '新浪微博') {
-            for (const key in hotData[hotDataKey]['content']) {
-                if (hotData[hotDataKey]['content'][key]['hot'] !== null && hotData[hotDataKey]['content'][key]['hot'] !== "") {
-                    sendTxt += "[" + num + ']' + hotData[hotDataKey]['content'][key]['title'] + '(' + hotData[hotDataKey]['content'][key]['hot'] + ")\n"
-                    num++
+    if (date.getMinutes() === 0 && date.getSeconds() < 20) {
+        console.log('微博热搜推送时间到')
+        let hotData = JSON.parse(fs.readFileSync(HotFilePath, 'utf8'));
+
+        let sendTxt = ''
+        let num = 1
+        for (const hotDataKey in hotData) {
+            if (hotData[hotDataKey]['hot_name'] === '新浪微博') {
+                for (const key in hotData[hotDataKey]['content']) {
+                    if (hotData[hotDataKey]['content'][key]['hot'] !== null && hotData[hotDataKey]['content'][key]['hot'] !== "") {
+                        sendTxt += "[" + num + ']' + hotData[hotDataKey]['content'][key]['title'] + '(' + hotData[hotDataKey]['content'][key]['hot'] + ")\n"
+                        num++
+                    }
                 }
             }
         }
+        await botSend(HotRoom, 0, sendTxt)
     }
-    await botSend(HotRoom, 0, sendTxt)
 }
 
 // 心跳包
