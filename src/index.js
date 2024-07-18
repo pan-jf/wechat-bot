@@ -106,6 +106,10 @@ async function sendHot() {
                     sendTxt += "[" + num + ']' + hotData[hotDataKey]['content'][key]['title'] + '(' + hotData[hotDataKey]['content'][key]['hot'] + ")\n"
                     num++
                 }
+                if (num % 10 === 0) {
+                    await botSend(HotRoom, 0, sendTxt)
+                    sendTxt = ''
+                }
             }
         }
     }
