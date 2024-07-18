@@ -102,7 +102,7 @@ async function sendHot() {
         if (hotData[hotDataKey]['hot_name'] === '新浪微博') {
             for (const key in hotData[hotDataKey]['content']) {
                 if (hotData[hotDataKey]['content'][key]['hot'] !== null) {
-                    sendTxt += "[" + num + ']' + hotData[hotDataKey]['content']['title'] + '(' + hotData[hotDataKey]['content']['hot'] + ")\n"
+                    sendTxt += "[" + num + ']' + hotData[hotDataKey]['content'][key]['title'] + '(' + hotData[hotDataKey]['content'][key]['hot'] + ")\n"
                     num++
                 }
             }
