@@ -95,15 +95,20 @@ async function botSend(roomId, contactId, sendTxt) {
 
 async function sendHot() {
     let hotData = JSON.parse(fs.readFileSync(HotFilePath, 'utf8'));
-    console.log(hotData);
 
-
-    console.log('----------------------------')
+    let sendTxt = ''
+    let num = 1
     for (const hotDataKey in hotData) {
         if (hotData[hotDataKey]['hot_name'] === '新浪微博') {
-            console.log(hotData[hotDataKey]['content'])
+            for (const key in hotData[hotDataKey]['content']) {
+                if (hotData[hotDataKey]['content'][key]['hot'] !== null) {
+                    sendTxt += "[" + num + ']' + hotData[hotDataKey]['content']['title'] + '(' + hotData[hotDataKey]['content']['hot'] + ")\n"
+                    num++
+                }
+            }
         }
     }
+    console.log(sendTxt)
 }
 
 // 心跳包
