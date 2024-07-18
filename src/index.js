@@ -97,7 +97,7 @@ async function botSend(roomId, contactId, sendTxt) {
 async function sendHot() {
     let date = new Date()
 
-    if (date.getMinutes() % 10 === 0 && date.getSeconds() < 20) {
+    if (date.getMinutes() % 20 === 0 && date.getSeconds() < 16) {
         console.log('微博热搜推送时间到')
         let hotData = JSON.parse(fs.readFileSync(HotFilePath, 'utf8'));
 
