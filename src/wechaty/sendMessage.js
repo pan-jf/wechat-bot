@@ -58,11 +58,11 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
     if (isRoom && room) {
         realContent = (await msg.mentionText()) || content.replace(`${botName}`, '') // 去掉艾特的消息主体
     }
-    console.log('-----------------------------------')
+    // console.log('-----------------------------------')
     // console.log('contact:', contact.payload)
     // console.log('room=', room)
     // console.log('content=', realContent)
-    console.log('contact.payload', contact.payload)
+    // console.log('contact.payload', contact.payload)
 
     const helpResponse = "🌸 欢迎使用肥燕机器人 🌸 \n" +
         "在群聊使用时记得艾特我，要不然没反应\n" +
@@ -149,7 +149,7 @@ function timeTaskResponse(realContent, room, roomId, contact) {
         return '您的格式有误，请重新输入'
     }
     let dateStr = arr[0] + '-' + arr[1] + '-' + arr[2] + ' ' + arr[3] + ':' + arr[4] + ':' + arr[5]
-    console.log(dateStr)
+    // console.log(dateStr)
     let time = Date.parse(dateStr) / 1000
     const newArr = arr.slice(6, arr.length)
     let notice = newArr.join('')

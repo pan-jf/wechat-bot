@@ -14,6 +14,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const env = dotenv.config().parsed // 环境参数
 const {version, name} = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf8'))
+const HotFilePath = env.HOT_FILE_PATH
 
 // 扫码
 function onScan(qrcode, status) {
@@ -92,11 +93,25 @@ async function botSend(roomId, contactId, sendTxt) {
     }
 }
 
+async function sendHot() {
+    let hotData = JSON.parse(fs.readFileSync(HotFilePath, 'utf8'));
+    console.log(hotData);
+
+
+    console.log('----------------------------')
+    for (const hotDataKey in hotData) {
+        if (hotData[hotDataKey]['hot_name'] === '新浪微博') {
+            console.log(hotData[hotDataKey]['content'])
+        }
+    }
+}
+
 // 心跳包
 async function onHeartbeat() {
     console.log('心跳监听', new Date().toLocaleString())
 
     await checkTimer()
+    await sendHot()
 }
 
 /**
