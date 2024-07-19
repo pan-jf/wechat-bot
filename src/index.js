@@ -97,7 +97,7 @@ async function botSend(roomId, contactId, sendTxt) {
 async function sendHot() {
     let date = new Date()
 
-    if (date.getMinutes() % 20 === 0 && date.getSeconds() < 16) {
+    if (date.getMinutes()  === 0 && date.getSeconds() < 16) {
         console.log('微博热搜推送时间到')
         let hotData = JSON.parse(fs.readFileSync(HotFilePath, 'utf8'));
 
@@ -106,7 +106,7 @@ async function sendHot() {
         for (const hotDataKey in hotData) {
             if (hotData[hotDataKey]['hot_name'] === '新浪微博') {
                 for (const key in hotData[hotDataKey]['content']) {
-                    if (num > 10) {
+                    if (num > 30) {
                         break
                     }
                     if (hotData[hotDataKey]['content'][key]['hot'] !== null && hotData[hotDataKey]['content'][key]['hot'] !== "") {
@@ -122,7 +122,7 @@ async function sendHot() {
 
 // 心跳包
 async function onHeartbeat() {
-    console.log('心跳监听', new Date().toLocaleString())
+    // console.log('心跳监听', new Date().toLocaleString())
 
     await checkTimer()
     await sendHot()
