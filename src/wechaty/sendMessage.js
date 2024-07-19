@@ -99,10 +99,10 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
         const botNameLen = botRealName.length
         const matchStr = '「' + botRealName + '：'
         if (realContent.substring(0, botNameLen + 2) === matchStr) {
+            realContent = realContent.replaceAll(`\n`, '')
             console.log('回复模式', realContent)
             realContent = realContent.slice(botNameLen + 2)
             if (realContent.substring(0, 6) === 'timer:') {
-                realContent = realContent.replaceAll(`\n`, '')
                 realContent = realContent.slice(6)
                 let arr = realContent.split('~')
                 if (arr.length < 2) {
